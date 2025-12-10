@@ -18,6 +18,12 @@ jobs:
         with:
           fetch-depth: 0 # full git history
 
+      - name: Debug Secrets
+        run: |
+          echo "MINIO_ENDPOINT = '${{ secrets.MINIO_ENDPOINT }}'"
+          if [ -z "${{ secrets.MINIO_ACCESS_KEY }}" ]; then echo "ACCESS KEY = EMPTY"; else echo "ACCESS KEY = OK"; fi
+          if [ -z "${{ secrets.MINIO_SECRET_KEY }}" ]; then echo "SECRET KEY = EMPTY"; else echo "SECRET KEY = OK"; fi
+
       # Robot packs the notebook
       - name: Zip .git folder
         run: zip -r repo.zip .git
