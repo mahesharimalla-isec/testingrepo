@@ -1,0 +1,50 @@
+name: CI/CD Deployment to Production
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    name: Deploy MERN Stack App
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          ref: main
+          token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+
+      - name: Create SSH key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > cicd_key.pem
+          chmod 600 cicd_key.pem
+      
+      # This step connects to your AWS EC2 server using SSH &
+      # runs a deployment script (deploy_bugtracker.sh) hosted on your EC2 machine
+      # To keep the SSH connection alive during potentially long-running operations
+      - name: SSH to VPS and Deploy to Application VPS
+        run: |
+          ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=60 -o ServerAliveCountMax=5 -i cicd_key.pem ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP_APP }} "
+            set -e
+            echo '✅ Logged into Application-Code VPS'
+
+
+            export PORT="${{ secrets.PORT }}"
+            export HOST="${{ secrets.HOST }}"
+            export SECRET_KEY="${{ secrets.SECRET_KEY }}"
+            export NODE_ENV="${{ secrets.NODE_ENV }}"
+            export USER="${{ secrets.USER }}"
+            export PASSWORD="${{ secrets.PASSWORD }}"
+
+            export REACT_APP_PORT="${{ secrets.REACT_APP_PORT }}"
+            export REACT_APP_NODE_ENV="${{ secrets.REACT_APP_NODE_ENV }}"
+
+            sudo chown ubuntu:ubuntu /home/ubuntu/deploy_bugtracker.sh
+            ssh-keyscan github.com >> ~/.ssh/known_hosts
+            bash /home/ubuntu/deploy_bugtracker.sh  
+          "
+
+
+
+

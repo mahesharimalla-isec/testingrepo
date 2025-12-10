@@ -1,0 +1,43 @@
+.errorpage {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.sad_icon {
+    font-size: 120px;
+    padding: 0 10px;
+    color: white;
+    background-color: black;
+    width: fit-content;
+    justify-content: center;
+    align-self: center;
+    margin-top: 50px;
+}
+
+.error_code {
+    margin-top: -60px;
+    font-size: 60px;
+    text-align: center;
+}
+
+.error_h1 {
+    font-size: 30px;
+    margin-top: -30px;
+    text-align: center;
+}
+
+.errorpage p {
+    font-size: 18px;
+    color: black;
+    align-self: center;
+    text-align: center;
+}
+
+.errorpage button {
+    font-size: 16px;
+    margin-top: 30px;
+    color: blue;
+    font-weight: 500;
+}

@@ -1,0 +1,454 @@
+.client-on-status {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: row;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-color: #f1f1f1;
+}
+
+.client-statusnavbar{
+    width: 210px;
+}
+
+.wrap_status_vulnertable{
+    width: 94%;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.router_head{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.wrap-page {
+    width: 95%;
+    display: flex;
+    flex-direction: row;
+    background-color: #ffff;
+    justify-content: center;
+    align-self: center;
+    border-radius: 10px;
+    box-shadow: 0 2px 2px 1px rgba(0, 0, 0, .2), 0 1px 8px 0 rgba(0, 0, 0, .14), 0 1px 3px 0 rgba(0, 0, 0, .12);
+    margin-top: 30px;
+
+}
+
+.client-first_project {
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+    margin-top: 0px;
+    background-color: white;
+    border-radius: 10px;
+    padding: 6px 0px;
+}
+
+.wrap_name_status {
+    width: 95%;
+    display: flex;
+    flex-direction: row;
+    border-bottom: 3px solid #e1e1e1;
+    margin-top: 0px;
+}
+
+.client-pro-name {
+    width: fit-content;
+    justify-content: flex-start;
+    align-items: flex-start;
+    text-align: left;
+    margin-top: 0px;
+}
+
+.client-pro-name h1 {
+    font-size: 19px;
+    font-weight: 500;
+    color: rgba(30, 30, 30, 0.762);
+    margin-left: 20px;
+}
+
+.client-pro-status {
+    flex: 35%;
+}
+
+.client-pro-status p {
+    font-size: 18px;
+    font-weight: bold;
+    text-align: left;
+    margin-top: 15px;
+    margin-left: 100px;
+}
+
+.client-statusdown {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+.wrap-left-status {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-left: 15px;
+}
+
+.wrap_start_end_date {
+    display: flex;
+    flex-direction: row;
+}
+
+.start-end {
+    display: flex;
+    flex-direction: row;
+    margin-top: 8px;
+}
+
+.start-end p {
+    font-size: 15px;
+    color: black;
+}
+
+.start-end h4 {
+    margin-left: 25px;
+    font-weight: 400;
+    font-size: 15px;
+    margin-top: 15px;
+    text-transform: uppercase;
+}
+
+.client_end-date {
+    display: flex;
+    flex-direction: row;
+    margin-top: 8px;
+    margin-left: 50px;
+}
+
+.client_end-date p {
+    font-size: 15px;
+    color: black;
+}
+
+.client_end-date h4 {
+    margin-left: 10px;
+    font-weight: 400;
+    font-size: 15px;
+    margin-top: 15px;
+    text-transform: uppercase;
+}
+
+.type-client {
+    display: flex;
+    flex-direction: row;
+    margin-top: -7px;
+}
+
+.type-client p {
+    font-size: 15px;
+    color: black;
+}
+
+.type-client h4 {
+    margin-left: 10px;
+    font-weight: 400;
+    font-size: 15px;
+    margin-top: 15px;
+    text-transform: uppercase;
+}
+
+.wrap-right-status {
+    width: 50%;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    border-radius: 10px;
+    margin-right: 10px;
+}
+
+.wrap-right-status h2 {
+    text-align: left;
+    font-size: 20px;
+    color: rgba(5, 5, 5, 0.573);
+    margin-top: 8px;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.watch-document {
+    padding: -10px -5px;
+    color: rgba(0, 0, 0, 0.61);
+    margin-left: 10px;
+    display: flex;
+    flex-direction: row;
+    border: 1px solid rgba(226, 226, 226, 0.385);
+    border-radius: 5px;
+    gap: 20px;
+    margin-bottom: 5px;
+    width: 80%;
+    justify-content: space-between;
+}
+
+.watch-document:hover{
+    background-color: rgba(217, 236, 244, 0.571);
+}
+
+.watch-document p {
+    text-align: left;
+    justify-content: flex-start;
+    font-size: 28px;
+    margin-top: 5px;
+    margin-left: 10px;
+    margin-bottom: 5px;
+    color: #66b18e;
+}
+
+.watch-document h2 {
+    color: grey;
+    text-decoration: none;
+    font-size: 14px;
+    justify-content: center;
+    align-self: center;
+    letter-spacing: 0.2px;
+}
+
+.watch-document i {
+    color: rgb(65, 65, 65);
+    font-size: 22px;
+    justify-content: center;
+    align-self: center;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.complete {
+    color: forestgreen;
+}
+
+.ongoing {
+    color: red;
+}
+
+.retesting {
+    color: chocolate;
+}
+
+.wrap-right-status h1 {
+    font-size: 18px;
+    margin-left: 20px;
+    color: red;
+    text-align: left;
+    font-weight: 500;
+}
+
+@media only screen and (max-width: 1050px) {
+    .client_end-date {
+        display: flex;
+        flex-direction: row;
+        margin-top: 8px;
+        margin-left: 20px;
+    }
+}
+
+@media only screen and (max-width: 986px) {
+    .wrap_start_end_date {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .start-end h4 {
+        margin-left: 25px;
+        font-weight: 400;
+        font-size: 16px;
+        margin-top: 17px;
+        margin-left: 25px;
+        text-transform: uppercase;
+    }
+
+    .client_end-date h4 {
+        margin-left: 10px;
+        font-weight: 400;
+        font-size: 16px;
+        margin-top: 17px;
+        margin-left: 32px;
+        text-transform: uppercase;
+    }
+
+    .client_end-date {
+        display: flex;
+        flex-direction: row;
+        margin-top: -15px;
+        margin-left: 0px;
+    }
+    .type-client {
+        display: flex;
+        flex-direction: row;
+        margin-top: -14px;
+    }
+}
+
+@media only screen and (max-width:1100px){
+
+    .wrap_status_vulnertable{
+        width: 70%;
+        display: flex;
+        flex-direction: column;
+    }
+
+}
+
+@media only screen and (max-width: 844px) {
+    .client-statusnavbar{
+        width: 70px;
+    }
+}
+
+@media only screen and (max-width: 750px) {
+
+    .watch-document a {
+        color: grey;
+        text-decoration: none;
+        font-size: 14px;
+        justify-content: center;
+        align-self: center;
+        letter-spacing: 0.2px;
+        width: 100px;
+        white-space: nowrap;
+        align-self: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+}
+
+@media only screen and (max-width: 640px) {
+    .wrap-page {
+        width: 95%;
+        display: flex;
+        flex-direction: column;
+        background-color: #ffff;
+        justify-content: center;
+        align-self: center;
+        margin-top: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 2px 1px rgba(0, 0, 0, .2), 0 1px 8px 0 rgba(0, 0, 0, .14), 0 1px 3px 0 rgba(0, 0, 0, .12);
+    }
+
+    .client-first_project {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        margin-top: 0px;
+        background-color: white;
+        border-radius: 10px;
+        padding: 6px 0px;
+    }
+
+    .wrap-right-status {
+        width: 100%;
+        background-color: white;
+        display: flex;
+        flex-direction: column;
+        border-radius: 10px;
+        margin-right: 10px;
+        margin-left: 0px;
+    }
+
+    .wrap-right-status h2 {
+        text-align: left;
+        font-size: 20px;
+        color: rgb(30, 30, 30, 0.762);
+        margin-left: 15px;
+    }
+
+    .wrap-right-status h4 {
+        margin-top: 0px;
+        margin-left: 10px;
+        margin-bottom: 7px;
+        font-size: 14px;
+        text-align: left;
+        margin-left: 25px;
+    }
+
+    .watch-document {
+        font-size: 15px;
+        padding: 8px;
+        color: rgba(0, 0, 0, 0.61);
+        text-align: left;
+        margin-left: 20px;
+    }
+
+    .watch-document a {
+        color: grey;
+        text-decoration: none;
+        font-size: 14px;
+        justify-content: center;
+        align-self: center;
+        letter-spacing: 0.2px;
+        width: 200px;
+        white-space: nowrap;
+        align-self: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+}
+
+@media only screen and (min-width: 1500px) {
+
+    .client-statusdown {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+    }
+
+    .client-statusnavbar{
+        width: 264px;
+    }
+
+    .wrap-left-status {
+        display: flex;
+        flex-direction: row;
+        margin-left: 15px;
+    }
+
+    .client_end-date {
+        display: flex;
+        flex-direction: row;
+        margin-top: 8px;
+        margin-left: 60px;
+    }
+
+    .type-client {
+        display: flex;
+        flex-direction: row;
+        margin-top: 9px;
+        margin-left: 60px;
+    }
+
+    .type-client p {
+        font-size: 16px;
+        color: black;
+    }
+
+    .type-client h4 {
+        margin-left: 10px;
+        font-weight: 400;
+        font-size: 16px;
+        margin-top: 17px;
+        text-transform: uppercase;
+    }
+
+    .wrap-page {
+        width: 90%;
+        display: flex;
+        flex-direction: row;
+        background-color: #ffff;
+        justify-content: center;
+        align-self: center;
+        border-radius: 10px;
+        box-shadow: 0 2px 2px 1px rgba(0, 0, 0, .2), 0 1px 8px 0 rgba(0, 0, 0, .14), 0 1px 3px 0 rgba(0, 0, 0, .12);
+    }
+}
