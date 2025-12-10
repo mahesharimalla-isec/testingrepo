@@ -10,7 +10,7 @@ on:
 jobs:
   backup:
     runs-on: ubuntu-latest
-
+    environment: github_backup
     steps:
       # Robot takes your entire notebook
       - name: Checkout full repository
