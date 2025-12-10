@@ -41,7 +41,7 @@ jobs:
       - name: Configure MinIO
         run: |
           ./mc alias set local \
-          --url "${{ secrets.MINIO_ENDPOINT }}" \
+          "${{ secrets.MINIO_ENDPOINT }}" \
           --access-key "${{ secrets.MINIO_ACCESS_KEY }}" \
           --secret-key "${{ secrets.MINIO_SECRET_KEY }}"
 
