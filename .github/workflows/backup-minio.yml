@@ -1,0 +1,68 @@
+name: Backup Repo to MinIO
+
+on:
+  push:
+    branches:
+      - Test
+  schedule:
+    - cron: "0 2 * * *" #daily at 2 AM
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Robot takes your entire notebook
+      - name: Checkout full repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full git history
+
+      # Robot packs the notebook
+      - name: Zip .git folder
+        run: zip -r repo.zip .git
+
+      # Lock the backup with a secret key
+      - name: Encrypt backup (AES-256)
+        run: |
+          echo "${{ secrets.BACKUP_ENCRYPTION_KEY }}" > key.txt
+          openssl enc -aes-256-cbc -salt -pbkdf2  \
+            -in repo.zip -out repo.enc  \
+            -pass file:./key.txt
+
+      # Robot installs MinIO client
+      # The robot downloads a tool (mc) that helps it talk to MinIO.
+      - name: Install MinIO client
+        run: |
+          curl -O https://dl.min.io/client/mc/release/linux-amd64/mc
+          chmod +x mc
+
+      # Robot logs into your MinIO locker
+      - name: Configure MinIO
+        run: |
+          ./mc alias set local \
+          ${{ secrets.MINIO_ENDPOINT }} \
+          ${{ secrets.MINIO_ACCESS_KEY }} \
+          ${{ secrets.MINIO_SECRET_KEY }}
+
+      # Robot puts encrypted backup into MinIO
+      - name: Upload encrypted backup to MinIO
+        run: |
+          FILENAME="${GITHUB_REPOSITORY##*/}-$(date +%Y%m%d-%H%M%S).enc"
+          ./mc cp repo.enc local/github-backups/$FILENAME
+
+# 🎉 Final Summary (Kid Version)
+
+# Your robot does this:
+
+# Picks up your notebook (repo)
+
+# Puts it in a small bag (zip)
+
+# Locks it with a secret key (encryption)
+
+# Logs into your home locker (MinIO)
+
+# Places the locked backup inside (upload)
+
+# Repeats every time you save OR every night (scheduler)
