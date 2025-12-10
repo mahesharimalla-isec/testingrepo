@@ -41,9 +41,9 @@ jobs:
       - name: Configure MinIO
         run: |
           ./mc alias set local \
-          ${{ secrets.MINIO_ENDPOINT }} \
-          ${{ secrets.MINIO_ACCESS_KEY }} \
-          ${{ secrets.MINIO_SECRET_KEY }}
+          --url "${{ secrets.MINIO_ENDPOINT }}" \
+          --access-key "${{ secrets.MINIO_ACCESS_KEY }}" \
+          --secret-key "${{ secrets.MINIO_SECRET_KEY }}"
 
       # Robot puts encrypted backup into MinIO
       - name: Upload encrypted backup to MinIO
