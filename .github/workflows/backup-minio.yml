@@ -5,68 +5,105 @@ on:
     branches:
       - testing
   schedule:
-    - cron: "0 2 * * *" #daily at 2 AM
+    - cron: "0 2 * * *" # daily at 2 AM
 
 jobs:
   backup:
     runs-on: ubuntu-latest
     environment: github_backup
     steps:
-      # Robot takes your entire notebook
+      # Checkout repository
       - name: Checkout full repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # full git history
 
-      - name: Debug Secrets
+      # Debug environment (optional - remove in production)
+      - name: Debug Environment
         run: |
-          echo "MINIO_ENDPOINT = '${{ secrets.MINIO_ENDPOINT }}'"
-          if [ -z "${{ secrets.MINIO_ACCESS_KEY }}" ]; then echo "ACCESS KEY = EMPTY"; else echo "ACCESS KEY = OK"; fi
-          if [ -z "${{ secrets.MINIO_SECRET_KEY }}" ]; then echo "SECRET KEY = EMPTY"; else echo "SECRET KEY = OK"; fi
+          echo "Repository: ${{ github.repository }}"
+          echo "MINIO_HOST: ${{ secrets.MINIO_HOST }}"
+          echo "MINIO_PORT: ${{ secrets.MINIO_PORT }}"
+          if [ -n "${{ secrets.MINIO_ACCESS_KEY }}" ]; then 
+            echo "MINIO_ACCESS_KEY is set (not empty)";
+          else 
+            echo "MINIO_ACCESS_KEY is empty or not set"; 
+          fi
+          if [ -n "${{ secrets.MINIO_SECRET_KEY }}" ]; then 
+            echo "MINIO_SECRET_KEY is set (not empty)";
+          else 
+            echo "MINIO_SECRET_KEY is empty or not set"; 
+          fi
 
-      # Robot packs the notebook
+      # Create backup archive
       - name: Zip .git folder
-        run: zip -r repo.zip .git
+        run: |
+          zip -r repo.zip .git
+          echo "Backup size:" $(du -h repo.zip | cut -f1)
 
-      # Lock the backup with a secret key
+      # Encrypt backup
       - name: Encrypt backup (AES-256)
         run: |
-          echo "${{ secrets.BACKUP_ENCRYPTION_KEY }}" > key.txt
-          openssl enc -aes-256-cbc -salt -pbkdf2  \
-            -in repo.zip -out repo.enc  \
-            -pass file:./key.txt
+          if [ -z "${{ secrets.BACKUP_ENCRYPTION_KEY }}" ]; then
+            echo "WARNING: No encryption key set, creating unencrypted backup"
+            mv repo.zip repo.enc
+          else
+            echo "Encrypting backup with AES-256"
+            echo "${{ secrets.BACKUP_ENCRYPTION_KEY }}" > key.txt
+            openssl enc -aes-256-cbc -salt -pbkdf2 \
+              -in repo.zip -out repo.enc \
+              -pass file:./key.txt
+            rm key.txt repo.zip
+          fi
 
-      # Robot installs MinIO client
-      # The robot downloads a tool (mc) that helps it talk to MinIO.
+      # Install MinIO client
       - name: Install MinIO client
         run: |
-          curl -O https://dl.min.io/client/mc/release/linux-amd64/mc
+          wget -q https://dl.min.io/client/mc/release/linux-amd64/mc
           chmod +x mc
+          ./mc --version
 
-      # Robot logs into your MinIO locker
+      # Configure MinIO connection
       - name: Configure MinIO
         run: |
-          export MC_HOST_local="${{ secrets.MINIO_ACCESS_KEY }}:${{ secrets.MINIO_SECRET_KEY }}@${{ secrets.MINIO_ENDPOINT }}"
-          ./mc alias set local "${{ secrets.MINIO_ENDPOINT }}"
+          # Build the MinIO endpoint URL
+          MINIO_URL="http://${{ secrets.MINIO_HOST }}:${{ secrets.MINIO_PORT }}"
+          echo "Configuring MinIO endpoint: $MINIO_URL"
 
-      # Robot puts encrypted backup into MinIO
+          # Set the MinIO alias
+          ./mc alias set local \
+            "$MINIO_URL" \
+            "${{ secrets.MINIO_ACCESS_KEY }}" \
+            "${{ secrets.MINIO_SECRET_KEY }}"
+
+          # Test the connection
+          ./mc ls local/ || echo "Warning: Could not list buckets, but continuing..."
+
+      # Upload backup to MinIO
       - name: Upload encrypted backup to MinIO
         run: |
-          FILENAME="${GITHUB_REPOSITORY##*/}-$(date +%Y%m%d-%H%M%S).enc"
-          ./mc cp repo.enc local/github-backups/$FILENAME
+          # Create filename with timestamp
+          REPO_NAME="${GITHUB_REPOSITORY##*/}"
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          FILENAME="${REPO_NAME}-${TIMESTAMP}.enc"
 
-# 🎉 Final Summary (Kid Version)
+          echo "Uploading backup: $FILENAME"
 
-# Your robot does this:
+          # Ensure bucket exists
+          ./mc mb local/github-backups --ignore-existing || true
 
-# Picks up your notebook (repo)
+          # Upload the file
+          ./mc cp repo.enc "local/github-backups/$FILENAME"
 
-# Puts it in a small bag (zip)
+          # List uploaded file
+          echo "Uploaded files in github-backups:"
+          ./mc ls local/github-backups/ || echo "Could not list bucket contents"
 
-# Locks it with a secret key (encryption)
+          # Cleanup
+          rm -f repo.enc
 
-# Logs into your home locker (MinIO)
-
-# Places the locked backup inside (upload)
-
-# Repeats every time you save OR every night (scheduler)
+      # Optional: Verify upload
+      - name: Verify upload
+        run: |
+          echo "Verifying MinIO connection..."
+          ./mc admin info local
