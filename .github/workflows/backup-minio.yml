@@ -3,7 +3,7 @@ name: Backup Repo to MinIO
 on:
   push:
     branches:
-      - Test
+      - testing
   schedule:
     - cron: "0 2 * * *" #daily at 2 AM
 
