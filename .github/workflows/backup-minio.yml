@@ -9,6 +9,7 @@ on:
 jobs:
   backup:
     runs-on: self-hosted
+    environment: github_backup
 
     steps:
       # 1️⃣ Checkout repository (full git history)
