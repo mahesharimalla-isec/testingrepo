@@ -38,9 +38,7 @@ jobs:
 
       - name: Configure MinIO
         run: |
-          ./mc alias set backup "${{ secrets.MINIO_HOST }}" \
-            "${{ secrets.MINIO_ACCESS_KEY }}" \
-            "${{ secrets.MINIO_SECRET_KEY }}"
+          ./mc alias set backup "${{ secrets.MINIO_HOST }}" "${{ secrets.MINIO_ACCESS_KEY }}" "${{ secrets.MINIO_SECRET_KEY }}"
 
       - name: Upload to MinIO
         run: |
