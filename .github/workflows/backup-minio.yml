@@ -44,8 +44,8 @@ jobs:
       # 5️⃣ Configure MinIO alias
       - name: Configure MinIO
         run: |
-          echo "Setting MinIO alias"
-          ./mc alias set backup "${{ secrets.MINIO_HOST }}" "${{ secrets.MINIO_ACCESS_KEY }}" "${{ secrets.MINIO_SECRET_KEY }}"
+          URL=$(echo "${{ secrets.MINIO_HOST }}" | tr -d '\r\n')
+          ./mc alias set backup "$URL" "${{ secrets.MINIO_ACCESS_KEY }}" "${{ secrets.MINIO_SECRET_KEY }}"
 
       # 6️⃣ Create bucket (if not exists) & upload backup
       - name: Upload backup to MinIO
