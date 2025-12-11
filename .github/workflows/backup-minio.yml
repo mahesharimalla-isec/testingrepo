@@ -4,45 +4,112 @@ on:
   push:
     branches: ["testing"]
   schedule:
-    - cron: "0 2 * * *"
+    - cron: "0 2 * * *" # daily at 2 AM
 
 jobs:
   backup:
     runs-on: self-hosted
 
     steps:
+      # 1️⃣ Checkout repository (full git history)
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Zip .git folder
-        run: zip -r repo.zip .git
+      # 2️⃣ Zip the .git folder
+      - name: Create backup zip
+        run: |
+          zip -r repo.zip .git
+          echo "Backup created: $(du -h repo.zip | cut -f1)"
 
+      # 3️⃣ Encrypt backup using AES-256
       - name: Encrypt backup
         run: |
           echo "${{ secrets.BACKUP_ENCRYPTION_KEY }}" > key.txt
           openssl enc -aes-256-cbc -salt -pbkdf2 \
             -in repo.zip -out repo.enc \
             -pass file:key.txt
-          rm key.txt repo.zip
+          rm -f key.txt repo.zip
+          echo "Backup encrypted"
 
+      # 4️⃣ Install MinIO client
       - name: Install MinIO client
         run: |
           wget -q https://dl.min.io/client/mc/release/linux-amd64/mc
           chmod +x mc
+          ./mc --version
 
-      - name: Debug secrets
-        run: |
-          echo "MINIO_HOST='${{ secrets.MINIO_HOST }}'"
-          echo "MINIO_ACCESS_KEY='${{ secrets.MINIO_ACCESS_KEY }}'"
-          echo "MINIO_SECRET_KEY='${{ secrets.MINIO_SECRET_KEY }}'"
-
+      # 5️⃣ Configure MinIO alias
       - name: Configure MinIO
         run: |
+          echo "Setting MinIO alias"
           ./mc alias set backup "${{ secrets.MINIO_HOST }}" "${{ secrets.MINIO_ACCESS_KEY }}" "${{ secrets.MINIO_SECRET_KEY }}"
 
-      - name: Upload to MinIO
+      # 6️⃣ Create bucket (if not exists) & upload backup
+      - name: Upload backup to MinIO
         run: |
-          FILE="backup-$(date +%Y%m%d-%H%M%S).enc"
-          ./mc mb backup/github-backup --ignore-existing
-          ./mc cp repo.enc backup/github-backup/$FILE
+          BUCKET="github-backup"
+          FILE="backup-${GITHUB_REPOSITORY##*/}-$(date +%Y%m%d-%H%M%S).enc"
+
+          # Ensure bucket exists
+          ./mc mb backup/$BUCKET --ignore-existing
+
+          # Upload encrypted backup
+          ./mc cp repo.enc backup/$BUCKET/$FILE
           echo "Uploaded: $FILE"
+
+          # List uploaded files
+          ./mc ls backup/$BUCKET/
+
+      # 7️⃣ Optional: Verify MinIO connection
+      - name: Verify MinIO
+        run: ./mc ls backup
+# name: Backup Repo to MinIO
+
+# on:
+#   push:
+#     branches: ["testing"]
+#   schedule:
+#     - cron: "0 2 * * *"
+
+# jobs:
+#   backup:
+#     runs-on: self-hosted
+
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+
+#       - name: Zip .git folder
+#         run: zip -r repo.zip .git
+
+#       - name: Encrypt backup
+#         run: |
+#           echo "${{ secrets.BACKUP_ENCRYPTION_KEY }}" > key.txt
+#           openssl enc -aes-256-cbc -salt -pbkdf2 \
+#             -in repo.zip -out repo.enc \
+#             -pass file:key.txt
+#           rm key.txt repo.zip
+
+#       - name: Install MinIO client
+#         run: |
+#           wget -q https://dl.min.io/client/mc/release/linux-amd64/mc
+#           chmod +x mc
+
+#       - name: Debug secrets
+#         run: |
+#           echo "MINIO_HOST='${{ secrets.MINIO_HOST }}'"
+#           echo "MINIO_ACCESS_KEY='${{ secrets.MINIO_ACCESS_KEY }}'"
+#           echo "MINIO_SECRET_KEY='${{ secrets.MINIO_SECRET_KEY }}'"
+
+#       - name: Configure MinIO
+#         run: |
+#           ./mc alias set backup "${{ secrets.MINIO_HOST }}" "${{ secrets.MINIO_ACCESS_KEY }}" "${{ secrets.MINIO_SECRET_KEY }}"
+
+#       - name: Upload to MinIO
+#         run: |
+#           FILE="backup-$(date +%Y%m%d-%H%M%S).enc"
+#           ./mc mb backup/github-backup --ignore-existing
+#           ./mc cp repo.enc backup/github-backup/$FILE
+#           echo "Uploaded: $FILE"
