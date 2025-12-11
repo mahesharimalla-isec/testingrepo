@@ -2,98 +2,49 @@ name: Backup Repo to MinIO
 
 on:
   push:
-    branches:
-      - testing
+    branches: ["testing"]
   schedule:
-    - cron: "0 2 * * *" # daily at 2 AM
+    - cron: "0 2 * * *"
 
 jobs:
   backup:
     runs-on: self-hosted
-    environment: github_backup
+
     steps:
-      # Checkout repository
-      - name: Checkout full repository
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # full git history
+          fetch-depth: 0
 
-      # Debug environment (optional - remove in production)
-      - name: Debug Environment
+      - name: Create backup (zip)
+        run: zip -r repo.zip .git
+
+      - name: Encrypt backup
         run: |
-          echo "Repository: ${{ github.repository }}"
-          echo "MINIO_HOST: ${{ secrets.MINIO_HOST }}"
-          echo "MINIO_PORT: ${{ secrets.MINIO_PORT }}"
-          if [ -n "${{ secrets.MINIO_ACCESS_KEY }}" ]; then 
-            echo "MINIO_ACCESS_KEY is set (not empty)";
-          else 
-            echo "MINIO_ACCESS_KEY is empty or not set"; 
-          fi
-          if [ -n "${{ secrets.MINIO_SECRET_KEY }}" ]; then 
-            echo "MINIO_SECRET_KEY is set (not empty)";
-          else 
-            echo "MINIO_SECRET_KEY is empty or not set"; 
-          fi
+          echo "${{ secrets.BACKUP_ENCRYPTION_KEY }}" > key.txt
+          openssl enc -aes-256-cbc -salt -pbkdf2 \
+            -in repo.zip -out repo.enc \
+            -pass file:key.txt
+          rm -f key.txt repo.zip
 
-      # Create backup archive
-      - name: Zip .git folder
-        run: |
-          zip -r repo.zip .git
-          echo "Backup size:" $(du -h repo.zip | cut -f1)
-
-      # Encrypt backup
-      - name: Encrypt backup (AES-256)
-        run: |
-          if [ -z "${{ secrets.BACKUP_ENCRYPTION_KEY }}" ]; then
-            echo "WARNING: No encryption key set, creating unencrypted backup"
-            mv repo.zip repo.enc
-          else
-            echo "Encrypting backup with AES-256"
-            echo "${{ secrets.BACKUP_ENCRYPTION_KEY }}" > key.txt
-            openssl enc -aes-256-cbc -salt -pbkdf2 \
-              -in repo.zip -out repo.enc \
-              -pass file:./key.txt
-            rm key.txt repo.zip
-          fi
-
-      # Install MinIO client
       - name: Install MinIO client
         run: |
           wget -q https://dl.min.io/client/mc/release/linux-amd64/mc
           chmod +x mc
-          ./mc --version
 
-      # Configure MinIO connection
       - name: Configure MinIO
         run: |
-          export MC_HOST_local="${{ secrets.MINIO_ACCESS_KEY }}:${{ secrets.MINIO_SECRET_KEY }}@${{ secrets.MINIO_ENDPOINT }}"
-          ./mc alias set local "${{ secrets.MINIO_ENDPOINT }}"
+          ./mc alias set backup \
+            "${{ secrets.MINIO_URL }}" \
+            "${{ secrets.MINIO_ACCESS_KEY }}" \
+            "${{ secrets.MINIO_SECRET_KEY }}"
 
-      # Upload backup to MinIO
-      - name: Upload encrypted backup to MinIO
+      - name: Upload backup to MinIO
         run: |
-          # Create filename with timestamp
-          REPO_NAME="${GITHUB_REPOSITORY##*/}"
-          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-          FILENAME="${REPO_NAME}-${TIMESTAMP}.enc"
+          REPO="${GITHUB_REPOSITORY##*/}"
+          TIME=$(date +%Y%m%d-%H%M%S)
+          FILE="${REPO}-${TIME}.enc"
 
-          echo "Uploading backup: $FILENAME"
-
-          # Ensure bucket exists
-          ./mc mb local/github-backups --ignore-existing || true
-
-          # Upload the file
-          ./mc cp repo.enc "local/github-backups/$FILENAME"
-
-          # List uploaded file
-          echo "Uploaded files in github-backups:"
-          ./mc ls local/github-backups/ || echo "Could not list bucket contents"
-
-          # Cleanup
-          rm -f repo.enc
-
-      # Optional: Verify upload
-      - name: Verify upload
-        run: |
-          echo "Verifying MinIO connection..."
-          ./mc admin info local
+          ./mc mb backup/github-backups --ignore-existing
+          ./mc cp repo.enc backup/github-backups/$FILE
+          echo "Uploaded: $FILE"
