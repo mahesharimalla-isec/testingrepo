@@ -13,10 +13,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Create backup (zip)
+      - name: Create backup zip
         run: zip -r repo.zip .git
 
       - name: Encrypt backup
@@ -25,14 +23,17 @@ jobs:
           openssl enc -aes-256-cbc -salt -pbkdf2 \
             -in repo.zip -out repo.enc \
             -pass file:key.txt
-          rm -f key.txt repo.zip
+          rm key.txt repo.zip
 
       - name: Install MinIO client
         run: |
           wget -q https://dl.min.io/client/mc/release/linux-amd64/mc
           chmod +x mc
 
-      - name: Configure MinIO alias
+      - name: Debug MinIO Host
+        run: echo "MINIO_HOST='${{ secrets.MINIO_HOST }}'"
+
+      - name: Configure MinIO
         run: |
           ./mc alias set backup \
             "${{ secrets.MINIO_HOST }}" \
@@ -41,14 +42,8 @@ jobs:
 
       - name: Upload backup to MinIO
         run: |
-          REPO="${GITHUB_REPOSITORY##*/}"
-          TIME=$(date +%Y%m%d-%H%M%S)
-          FILE="${REPO}-${TIME}.enc"
+          FILE="backup-$(date +%Y%m%d-%H%M%S).enc"
 
-          # Create bucket if not exist
           ./mc mb backup/github-backup --ignore-existing
-
-          # Upload
-          ./mc cp repo.enc backup/github-backup/"$FILE"
-
+          ./mc cp repo.enc "backup/github-backup/$FILE"
           echo "Uploaded: $FILE"
