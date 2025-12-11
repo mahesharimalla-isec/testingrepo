@@ -14,7 +14,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Create backup zip
+      - name: Zip .git folder
         run: zip -r repo.zip .git
 
       - name: Encrypt backup
@@ -30,20 +30,21 @@ jobs:
           wget -q https://dl.min.io/client/mc/release/linux-amd64/mc
           chmod +x mc
 
-      - name: Debug MinIO Host
-        run: echo "MINIO_HOST='${{ secrets.MINIO_HOST }}'"
+      - name: Debug secrets
+        run: |
+          echo "MINIO_HOST='${{ secrets.MINIO_HOST }}'"
+          echo "MINIO_ACCESS_KEY='${{ secrets.MINIO_ACCESS_KEY }}'"
+          echo "MINIO_SECRET_KEY='${{ secrets.MINIO_SECRET_KEY }}'"
 
       - name: Configure MinIO
         run: |
-          ./mc alias set backup \
-            "${{ secrets.MINIO_HOST }}" \
+          ./mc alias set backup "${{ secrets.MINIO_HOST }}" \
             "${{ secrets.MINIO_ACCESS_KEY }}" \
             "${{ secrets.MINIO_SECRET_KEY }}"
 
-      - name: Upload backup to MinIO
+      - name: Upload to MinIO
         run: |
           FILE="backup-$(date +%Y%m%d-%H%M%S).enc"
-
           ./mc mb backup/github-backup --ignore-existing
-          ./mc cp repo.enc "backup/github-backup/$FILE"
+          ./mc cp repo.enc backup/github-backup/$FILE
           echo "Uploaded: $FILE"
