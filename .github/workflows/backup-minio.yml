@@ -66,18 +66,8 @@ jobs:
       # Configure MinIO connection
       - name: Configure MinIO
         run: |
-          # Build the MinIO endpoint URL
-          MINIO_URL="http://${{ secrets.MINIO_HOST }}:${{ secrets.MINIO_PORT }}"
-          echo "Configuring MinIO endpoint: $MINIO_URL"
-
-          # Set the MinIO alias
-          ./mc alias set local \
-            "$MINIO_URL" \
-            "${{ secrets.MINIO_ACCESS_KEY }}" \
-            "${{ secrets.MINIO_SECRET_KEY }}"
-
-          # Test the connection
-          ./mc ls local/ || echo "Warning: Could not list buckets, but continuing..."
+          export MC_HOST_local="${{ secrets.MINIO_ACCESS_KEY }}:${{ secrets.MINIO_SECRET_KEY }}@${{ secrets.MINIO_ENDPOINT }}"
+          ./mc alias set local "${{ secrets.MINIO_ENDPOINT }}"
 
       # Upload backup to MinIO
       - name: Upload encrypted backup to MinIO
