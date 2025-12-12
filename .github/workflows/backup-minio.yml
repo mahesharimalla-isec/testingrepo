@@ -4,7 +4,7 @@ on:
   push:
     branches: ["testing"]
   schedule:
-    - cron: "50 8 * * *" # daily at 2 AM
+    - cron: "55 8 * * *" # daily at 2:25 PM
 
 jobs:
   backup:
