@@ -3,7 +3,7 @@ name: Backup All Repos to MinIO
 on:
   schedule:
     - cron: "5 9 * * *" # daily at 9:05 AM
-  workflow_dispatch:
+  
 
 jobs:
   backup:
@@ -23,7 +23,7 @@ jobs:
         run: |
           mkdir repos
           cd repos
-          curl -s -H "Authorization: token $GITHUB_TOKEN" \
+          curl -s -H "Authorization: token $PAT_GITHUB" \
             "https://api.github.com/user/repos?per_page=100" | jq -r '.[].ssh_url' > repo_list.txt
           echo "Repositories to backup:"
           cat repo_list.txt
