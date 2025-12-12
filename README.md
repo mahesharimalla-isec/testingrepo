@@ -6,7 +6,6 @@ In the project directory, you can run:
 
 Install all the the npm packages required for this project.
 
-
 In the project directory, you can run:
 
 ### `npm start`
