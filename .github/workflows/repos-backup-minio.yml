@@ -1,0 +1,68 @@
+name: Backup All Repos to MinIO
+
+on:
+  schedule:
+    - cron: "5 9 * * *" # daily at 9:05 AM
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: self-hosted
+    environment: github_backup
+
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zip wget jq git openssl
+
+      # 1️⃣ Get list of all repos
+      - name: Get all repositories
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_ACCOUNT_TOKEN }}
+        run: |
+          mkdir repos
+          cd repos
+          curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/user/repos?per_page=100" | jq -r '.[].ssh_url' > repo_list.txt
+          echo "Repositories to backup:"
+          cat repo_list.txt
+
+      # 2️⃣ Clone, zip, encrypt each repo
+      - name: Backup repositories
+        env:
+          BACKUP_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+        run: |
+          while read repo; do
+            repo_name=$(basename "$repo" .git)
+            echo "Cloning $repo_name..."
+            git clone --mirror "$repo" "$repo_name"
+            zip -r "$repo_name.zip" "$repo_name"
+            echo "$BACKUP_KEY" > key.txt
+            openssl enc -aes-256-cbc -salt -pbkdf2 -in "$repo_name.zip" -out "$repo_name.enc" -pass file:key.txt
+            rm -rf "$repo_name" "$repo_name.zip" key.txt
+          done < repos/repo_list.txt
+          echo "All repositories encrypted."
+
+      # 3️⃣ Install MinIO client
+      - name: Install MinIO client
+        run: |
+          wget -q https://dl.min.io/client/mc/release/linux-amd64/mc
+          chmod +x mc
+
+      # 4️⃣ Configure MinIO
+      - name: Configure MinIO
+        run: |
+          URL=$(echo "${{ secrets.MINIO_HOST }}" | tr -d '\r\n')
+          ./mc alias set backup "$URL" "${{ secrets.MINIO_ACCESS_KEY }}" "${{ secrets.MINIO_SECRET_KEY }}"
+
+      # 5️⃣ Upload all encrypted backups
+      - name: Upload backups to MinIO
+        run: |
+          BUCKET="github-backup"
+          ./mc mb backup/$BUCKET --ignore-existing
+          for enc_file in *.enc; do
+            ./mc cp "$enc_file" backup/$BUCKET/
+            echo "Uploaded: $enc_file"
+          done
+          ./mc ls backup/$BUCKET/
