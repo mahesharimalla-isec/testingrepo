@@ -1,3 +1,5 @@
+##### Taking repo level backup into MinIO ######
+##### Date: 12-12-2025 #####
 name: Backup Repo to MinIO
 
 on:
@@ -66,3 +68,5 @@ jobs:
       # 7️⃣ Optional: Verify MinIO connection
       - name: Verify MinIO
         run: ./mc ls backup
+
+      # This yml file is Working successfully
